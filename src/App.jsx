@@ -4,6 +4,7 @@ export default function App() {
   const [remindOpen, setRemindOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
 
   function openRemind() {
     setRemindOpen(true);
@@ -18,24 +19,46 @@ export default function App() {
 
   async function submitRemind(e) {
     e.preventDefault();
-    if (!email || !email.includes("@")) return;
+    setError("");
+    if (!email || !email.includes("@")) { setError("Please enter a valid email address."); return; }
     const endpoint = "https://script.google.com/macros/s/AKfycbyc-UwWqa9W93c4naV-sFOnl3GtmscG1OWWisaCsEIyTBXQnJe0hrVFqDazKGQBaiqr/exec";
     try {
-      // POST to Google Apps Script
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, source: "homepage" }),
-      });
-      const json = await res.json().catch(() => null);
+      // Try sending as application/x-www-form-urlencoded (Apps Script handles form params reliably)
+      const params = new URLSearchParams({ email, source: "homepage" });
+      let res = null;
+      try {
+        res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: params.toString(),
+        });
+      } catch (innerErr) {
+        console.warn('form POST failed (possible CORS), will retry with no-cors fallback', innerErr);
+      }
+
+      // If the response was opaque or we didn't get a response, try a no-cors POST as a best-effort fallback
+      if (!res || !res.ok) {
+        try {
+          await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: params.toString(),
+            mode: "no-cors", // best-effort: Apps Script will receive it but response will be opaque
+          });
+          console.warn('used no-cors fallback; response will be opaque but Apps Script should receive the POST');
+        } catch (noCorsErr) {
+          console.error('no-cors fallback also failed', noCorsErr);
+          throw noCorsErr;
+        }
+      }
+
       // Save locally as fallback/quick access
-      localStorage.setItem("remind_email", email);
+      try { localStorage.setItem("remind_email", email); } catch (e) {}
       setSent(true);
-      // Optionally inspect json for {ok:true}
-      console.log('remind response', json);
+      console.log('remind submit: success (best-effort)');
     } catch (err) {
       console.error('remind submit failed', err);
-      // still save locally so the email isn't lost
+      setError('Could not send — saved locally.');
       try { localStorage.setItem("remind_email", email); } catch (e) {}
       setSent(true);
     }
@@ -79,6 +102,7 @@ export default function App() {
               </div>
             </form>
             {sent && <p className="note">Thanks — we'll message you when voting opens.</p>}
+            {error && <p className="note" style={{ color: '#ff9b9b' }}>{error}</p>}
           </div>
         </div>
       )}
