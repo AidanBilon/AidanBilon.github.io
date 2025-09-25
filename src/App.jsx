@@ -80,7 +80,7 @@ export default function App() {
             <div className="cta">
               <a className="btn" href="#platform" onClick={(e) => { e.preventDefault(); document.getElementById('platform')?.scrollIntoView({ behavior: 'smooth' }); }}>Read Platform</a>
               <a className="btn" href="https://vote.wusa.ca" target="_blank" rel="noreferrer">Vote</a>
-              <button className="btn outline" onClick={openRemind}>Remind Me</button>
+              {/* <button className="btn outline" onClick={openRemind}>Remind Me</button> */}
             </div>
           </div>
         </div>
