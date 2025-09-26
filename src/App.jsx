@@ -116,7 +116,7 @@ export default function App() {
           <ul className="cards">
             <li className="card">
               <h3>Better Supporting Affiliates</h3>
-              <p>With more resources available, I want to provide affiliates with stronger logistics support, promotion, and other help as they fit. I’ve already been talking directly with several affiliates to understand their needs and incorporate their feedback into how EngSoc can support events and growth.</p>
+              <p>With more resources available, I want to provide affiliates with stronger logistics support, promotion, and other help as they see fit. I’ve already been talking directly with several affiliates to understand their needs and incorporate their feedback into how EngSoc can support events and growth.</p>
             </li>
             <li className="card">
               <h3>Make Campus More Inviting</h3>
